@@ -205,6 +205,16 @@ class ApiClient {
     });
   }
 
+  async uploadTwitter(file) {
+    const formData = new FormData();
+    formData.append('file', file);
+
+    return this.request('/datasources/twitter', {
+      method: 'POST',
+      body: formData,
+    });
+  }
+
   async deleteDataSource(id) {
     return this.request(`/datasources/${id}`, { method: 'DELETE' });
   }

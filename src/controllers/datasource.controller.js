@@ -1,6 +1,7 @@
 const AdmZip = require('adm-zip');
 const whatsappService = require('../services/whatsapp.service');
 const instagramService = require('../services/instagram.service');
+const twitterService = require('../services/twitter.service');
 const catchAsync = require('../utils/catchAsync');
 const ApiError = require('../utils/ApiError');
 const { success, noContent } = require('../utils/response');
@@ -77,6 +78,57 @@ const uploadInstagram = catchAsync(async (req, res) => {
   success(res, result, 'Instagram export uploaded and processing started');
 });
 
+const uploadTwitter = catchAsync(async (req, res) => {
+  if (!req.file) {
+    throw ApiError.badRequest('No file uploaded');
+  }
+
+  // Extract ZIP file
+  const zip = new AdmZip(req.file.buffer);
+  const zipEntries = zip.getEntries();
+  
+  // Parse JS/JSON files from ZIP (Twitter uses .js format)
+  const files = {};
+  
+  for (const entry of zipEntries) {
+    const filename = entry.entryName.toLowerCase();
+    
+    // Skip directories
+    if (entry.isDirectory) {
+      continue;
+    }
+    
+    // Twitter exports are in /data/ folder and use .js extension
+    if (!filename.endsWith('.js') && !filename.endsWith('.json')) {
+      continue;
+    }
+    
+    // Only process relevant files
+    const relevantFiles = ['tweet', 'like', 'profile', 'account', 'direct-message', 'dm'];
+    const isRelevant = relevantFiles.some((f) => filename.includes(f));
+    
+    if (!isRelevant) {
+      continue;
+    }
+    
+    try {
+      const content = zip.readAsText(entry);
+      const baseName = filename.split('/').pop();
+      files[baseName] = content; // Keep as raw content, parser will extract JSON
+    } catch {
+      continue;
+    }
+  }
+
+  if (Object.keys(files).length === 0) {
+    throw ApiError.badRequest('No valid Twitter data files found in the ZIP. Make sure you uploaded the correct Twitter/X export.');
+  }
+
+  const result = await twitterService.processTwitterExport(req.user.id, files);
+
+  success(res, result, 'Twitter export uploaded and processing started');
+});
+
 const getDataSources = catchAsync(async (req, res) => {
   const { type } = req.query;
   const dataSources = await whatsappService.getDataSources(req.user.id, type);
@@ -91,6 +143,7 @@ const deleteDataSource = catchAsync(async (req, res) => {
 module.exports = {
   uploadWhatsApp,
   uploadInstagram,
+  uploadTwitter,
   getDataSources,
   deleteDataSource,
 };

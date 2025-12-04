@@ -24,6 +24,13 @@ router.post(
   datasourceController.uploadInstagram
 );
 
+// Twitter import (uses same ZIP upload as Instagram)
+router.post(
+  '/twitter',
+  instagramUpload,
+  datasourceController.uploadTwitter
+);
+
 // List all data sources
 router.get(
   '/',
