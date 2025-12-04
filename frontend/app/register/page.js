@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { useAuth } from '@/context/AuthContext';
@@ -30,36 +30,44 @@ export default function RegisterPage() {
     }
   };
 
-  const handleGoogleLogin = async (response) => {
-    setError('');
-    setLoading(true);
-    try {
-      await loginWithGoogle(response.credential);
-      router.push('/chat');
-    } catch (err) {
-      setError(err.message);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    // Initialize Google Sign-In
-    if (window.google && process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID) {
+  const initializeGoogle = () => {
+    const clientId = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID;
+    if (window.google && clientId) {
       window.google.accounts.id.initialize({
-        client_id: process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID,
-        callback: handleGoogleLogin,
+        client_id: clientId,
+        callback: async (response) => {
+          setError('');
+          setLoading(true);
+          try {
+            await loginWithGoogle(response.credential);
+            router.push('/chat');
+          } catch (err) {
+            setError(err.message);
+          } finally {
+            setLoading(false);
+          }
+        },
       });
       window.google.accounts.id.renderButton(
         document.getElementById('google-signin-btn'),
-        { theme: 'filled_black', size: 'large', width: '100%', text: 'continue_with' }
+        { 
+          theme: 'filled_black', 
+          size: 'large', 
+          width: 320,
+          text: 'continue_with',
+          shape: 'rectangular'
+        }
       );
     }
-  }, []);
+  };
 
   return (
     <>
-      <Script src="https://accounts.google.com/gsi/client" strategy="afterInteractive" />
+      <Script 
+        src="https://accounts.google.com/gsi/client" 
+        strategy="afterInteractive"
+        onLoad={initializeGoogle}
+      />
       
       <div className="min-h-screen flex items-center justify-center p-4">
         <div className="w-full max-w-md">
@@ -85,7 +93,7 @@ export default function RegisterPage() {
             {/* OAuth Buttons */}
             <div className="space-y-3">
               {/* Google Sign-In */}
-              <div id="google-signin-btn" className="w-full flex justify-center"></div>
+              <div id="google-signin-btn" className="flex justify-center min-h-[44px]"></div>
               
               {/* Apple Sign-In */}
               <button
