@@ -26,6 +26,9 @@ model User {
   isVerified Boolean @default(false) @map("is_verified")
   isActive   Boolean @default(true) @map("is_active")
 
+  // Voice settings
+  voiceSettings Json? @map("voice_settings")
+
   // Relations
   twin          TwinProfile?
   conversations Conversation[]
@@ -48,6 +51,32 @@ model RefreshToken {
 
   @@index([userId])
   @@map("refresh_tokens")
+}
+
+// ==================== PHOTOS ====================
+
+model Photo {
+  id     String @id @default(uuid())
+  userId String @map("user_id")
+  twinId String @map("twin_id")
+
+  // File info
+  filename     String
+  originalName String  @map("original_name")
+  mimeType     String  @map("mime_type")
+  size         Int
+
+  // Analysis
+  description String?
+  category    String  @default("other") // selfie, friends, family, travel, food, pet, hobby, work, event, nature, other
+  analysis    Json    @default("{}") // Full analysis from Gemini Vision
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@index([userId])
+  @@index([twinId])
+  @@map("photos")
 }
 
 // ==================== DATA SOURCES ====================
@@ -116,8 +145,9 @@ model TwinProfile {
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
 
-  insights Insight[]
-  memories Memory[]
+  insights  Insight[]
+  memories  Memory[]
+  questions TwinQuestion[]
 
   @@map("twin_profiles")
 }
@@ -192,6 +222,80 @@ enum MessageRole {
   user
   assistant
   system
+}
+
+// ==================== TWIN QUESTIONS ====================
+
+model TwinQuestion {
+  id     String      @id @default(uuid())
+  twinId String      @map("twin_id")
+  twin   TwinProfile @relation(fields: [twinId], references: [id], onDelete: Cascade)
+
+  // Question details
+  question String
+  category String // personality, preferences, relationships, experiences, goals, daily_life
+  context  String? // Why this question is being asked
+
+  // Answer
+  answer     String?
+  answeredAt DateTime? @map("answered_at")
+
+  // Status
+  status QuestionStatus @default(pending)
+
+  // Priority (higher = more important to ask)
+  priority Int @default(5) // 1-10
+
+  // Skip tracking
+  skippedCount Int @default(0) @map("skipped_count")
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@index([twinId, status])
+  @@map("twin_questions")
+}
+
+enum QuestionStatus {
+  pending
+  answered
+  skipped
+}
+
+// ==================== PROACTIVE MESSAGES ====================
+
+model TwinNotification {
+  id     String @id @default(uuid())
+  userId String @map("user_id")
+
+  // Message content
+  type     NotificationType
+  title    String
+  message  String
+  context  String? // Why this notification was generated
+
+  // Status
+  isRead   Boolean   @default(false) @map("is_read")
+  readAt   DateTime? @map("read_at")
+
+  // Action (optional)
+  actionType String? @map("action_type") // "chat", "question", "memory", etc.
+  actionData Json?   @map("action_data")
+
+  createdAt DateTime @default(now()) @map("created_at")
+
+  @@index([userId, isRead])
+  @@map("twin_notifications")
+}
+
+enum NotificationType {
+  greeting        // Daily greeting
+  insight         // New insight discovered
+  question        // Follow-up question
+  reminder        // Reminder about something
+  suggestion      // Suggestion or tip
+  milestone       // Achievement/milestone
+  check_in        // Emotional check-in
 }
 
 // ==================== INSIGHTS ====================

@@ -14,4 +14,14 @@ const model = genAI.getGenerativeModel({
   },
 });
 
-module.exports = { genAI, model };
+// Vision model - for image analysis
+const visionModel = genAI.getGenerativeModel({
+  model: 'gemini-2.0-flash',
+  generationConfig: {
+    temperature: 0.7,
+    topP: 0.95,
+    maxOutputTokens: 4096,
+  },
+});
+
+module.exports = { genAI, model, visionModel };

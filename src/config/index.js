@@ -24,5 +24,10 @@ module.exports = {
     keyId: process.env.APPLE_KEY_ID,
     privateKeyPath: process.env.APPLE_PRIVATE_KEY_PATH,
   },
+
+  elevenlabs: {
+    apiKey: process.env.ELEVENLABS_API_KEY,
+    defaultVoiceId: process.env.ELEVENLABS_DEFAULT_VOICE_ID || 'EXAVITQu4vr4xnSDxMaL', // Sarah
+  },
 };
 

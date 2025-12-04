@@ -48,7 +48,11 @@ class ApiClient {
     const response = await fetch(url, {
       ...options,
       headers,
-      body: options.body instanceof FormData ? options.body : JSON.stringify(options.body),
+      body: options.body instanceof FormData 
+        ? options.body 
+        : options.body 
+          ? JSON.stringify(options.body) 
+          : undefined,
     });
 
     const data = await response.json();
@@ -150,6 +154,143 @@ class ApiClient {
 
   async getTwinProfile() {
     return this.request('/twin/profile');
+  }
+
+  // Questions
+  async getNextQuestion() {
+    return this.request('/questions/next');
+  }
+
+  async getPendingQuestions(limit = 10) {
+    return this.request(`/questions/pending?limit=${limit}`);
+  }
+
+  async answerQuestion(questionId, answer) {
+    return this.request(`/questions/${questionId}/answer`, {
+      method: 'POST',
+      body: { answer },
+    });
+  }
+
+  async skipQuestion(questionId) {
+    return this.request(`/questions/${questionId}/skip`, {
+      method: 'POST',
+    });
+  }
+
+  async generateQuestions(count = 5) {
+    return this.request('/questions/generate', {
+      method: 'POST',
+      body: { count },
+    });
+  }
+
+  async getQuestionStats() {
+    return this.request('/questions/stats');
+  }
+
+  async getAnsweredQuestions(limit = 20, offset = 0) {
+    return this.request(`/questions/answered?limit=${limit}&offset=${offset}`);
+  }
+
+  // Photos
+  async uploadPhoto(file, description = '') {
+    const formData = new FormData();
+    formData.append('photo', file);
+    if (description) {
+      formData.append('description', description);
+    }
+    return this.request('/photos/upload', {
+      method: 'POST',
+      body: formData,
+    });
+  }
+
+  async getPhotos(limit = 20, offset = 0, category = null) {
+    let url = `/photos?limit=${limit}&offset=${offset}`;
+    if (category) url += `&category=${category}`;
+    return this.request(url);
+  }
+
+  async getPhoto(photoId) {
+    return this.request(`/photos/${photoId}`);
+  }
+
+  async deletePhoto(photoId) {
+    return this.request(`/photos/${photoId}`, { method: 'DELETE' });
+  }
+
+  async getPhotoStats() {
+    return this.request('/photos/stats');
+  }
+
+  // Voice
+  async sendVoiceMessage(audioBlob, conversationId = null) {
+    const formData = new FormData();
+    formData.append('audio', audioBlob, 'voice.webm');
+    if (conversationId) {
+      formData.append('conversationId', conversationId);
+    }
+    return this.request('/voice/message', {
+      method: 'POST',
+      body: formData,
+    });
+  }
+
+  // Notifications
+  async getNotifications(limit = 20) {
+    return this.request(`/notifications?limit=${limit}`);
+  }
+
+  async markNotificationRead(id) {
+    return this.request(`/notifications/${id}/read`, { method: 'POST' });
+  }
+
+  async markAllNotificationsRead() {
+    return this.request('/notifications/read-all', { method: 'POST' });
+  }
+
+  async deleteNotification(id) {
+    return this.request(`/notifications/${id}`, { method: 'DELETE' });
+  }
+
+  // TTS / Voice
+  async getVoices() {
+    return this.request('/tts/voices');
+  }
+
+  async getVoiceSettings() {
+    return this.request('/tts/settings');
+  }
+
+  async updateVoiceSettings(settings) {
+    return this.request('/tts/settings', {
+      method: 'PUT',
+      body: settings,
+    });
+  }
+
+  async generateSpeech(text, voiceId = null) {
+    return this.request('/tts/generate', {
+      method: 'POST',
+      body: { text, voiceId },
+    });
+  }
+
+  async cloneVoice(name, audioFiles, description = '') {
+    const formData = new FormData();
+    formData.append('name', name);
+    if (description) formData.append('description', description);
+    audioFiles.forEach((file) => formData.append('audio', file));
+    
+    return this.request('/tts/clone', {
+      method: 'POST',
+      body: formData,
+    });
+  }
+
+  async deleteVoice(voiceId) {
+    return this.request(`/tts/voices/${voiceId}`, { method: 'DELETE' });
   }
 
   // Chat
