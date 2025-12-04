@@ -1,7 +1,7 @@
 const express = require('express');
 const datasourceController = require('../../controllers/datasource.controller');
 const auth = require('../../middlewares/auth.middleware');
-const { whatsappUpload } = require('../../middlewares/upload.middleware');
+const { whatsappUpload, instagramUpload } = require('../../middlewares/upload.middleware');
 const validate = require('../../middlewares/validate.middleware');
 const datasourceValidation = require('../../validations/datasource.validation');
 
@@ -15,6 +15,13 @@ router.post(
   '/whatsapp',
   whatsappUpload,
   datasourceController.uploadWhatsApp
+);
+
+// Instagram import
+router.post(
+  '/instagram',
+  instagramUpload,
+  datasourceController.uploadInstagram
 );
 
 // List all data sources
@@ -32,4 +39,3 @@ router.delete(
 );
 
 module.exports = router;
-

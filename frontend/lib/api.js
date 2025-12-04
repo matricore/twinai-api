@@ -194,6 +194,17 @@ class ApiClient {
     });
   }
 
+  async uploadInstagram(file, ownerName) {
+    const formData = new FormData();
+    formData.append('file', file);
+    formData.append('ownerName', ownerName);
+
+    return this.request('/datasources/instagram', {
+      method: 'POST',
+      body: formData,
+    });
+  }
+
   async deleteDataSource(id) {
     return this.request(`/datasources/${id}`, { method: 'DELETE' });
   }

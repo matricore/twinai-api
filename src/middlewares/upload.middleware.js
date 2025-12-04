@@ -7,7 +7,7 @@ const storage = multer.memoryStorage();
 // File filter for text files (WhatsApp exports)
 const textFileFilter = (_req, file, cb) => {
   const allowedMimes = ['text/plain', 'application/octet-stream'];
-  const allowedExts = ['.txt', '.zip'];
+  const allowedExts = ['.txt'];
   
   const ext = file.originalname.toLowerCase().slice(file.originalname.lastIndexOf('.'));
   
@@ -15,6 +15,20 @@ const textFileFilter = (_req, file, cb) => {
     cb(null, true);
   } else {
     cb(ApiError.badRequest('Only .txt files are allowed'), false);
+  }
+};
+
+// File filter for ZIP files (Instagram exports)
+const zipFileFilter = (_req, file, cb) => {
+  const allowedMimes = ['application/zip', 'application/x-zip-compressed', 'application/octet-stream'];
+  const allowedExts = ['.zip'];
+  
+  const ext = file.originalname.toLowerCase().slice(file.originalname.lastIndexOf('.'));
+  
+  if (allowedMimes.includes(file.mimetype) || allowedExts.includes(ext)) {
+    cb(null, true);
+  } else {
+    cb(ApiError.badRequest('Only .zip files are allowed'), false);
   }
 };
 
@@ -35,6 +49,16 @@ const whatsappUpload = multer({
   fileFilter: textFileFilter,
   limits: {
     fileSize: 50 * 1024 * 1024, // 50MB
+    files: 1,
+  },
+}).single('file');
+
+// Instagram export upload (single .zip file, max 500MB)
+const instagramUpload = multer({
+  storage,
+  fileFilter: zipFileFilter,
+  limits: {
+    fileSize: 500 * 1024 * 1024, // 500MB
     files: 1,
   },
 }).single('file');
@@ -70,6 +94,6 @@ const handleUpload = (uploadFn) => (req, res, next) => {
 
 module.exports = {
   whatsappUpload: handleUpload(whatsappUpload),
+  instagramUpload: handleUpload(instagramUpload),
   photoUpload: handleUpload(photoUpload),
 };
-

@@ -6,6 +6,12 @@ const whatsappUpload = {
   }),
 };
 
+const instagramUpload = {
+  body: Joi.object({
+    ownerName: Joi.string().min(1).max(100).required().trim(),
+  }),
+};
+
 const getDataSources = {
   query: Joi.object({
     type: Joi.string().valid('whatsapp', 'instagram', 'twitter', 'photos'),
