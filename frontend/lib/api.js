@@ -109,6 +109,24 @@ class ApiClient {
     return data;
   }
 
+  async googleAuth(idToken) {
+    const data = await this.request('/auth/google', {
+      method: 'POST',
+      body: { idToken },
+    });
+    this.setTokens(data.data.accessToken, data.data.refreshToken);
+    return data;
+  }
+
+  async appleAuth(identityToken, user = null) {
+    const data = await this.request('/auth/apple', {
+      method: 'POST',
+      body: { identityToken, user },
+    });
+    this.setTokens(data.data.accessToken, data.data.refreshToken);
+    return data;
+  }
+
   async logout() {
     try {
       await this.request('/auth/logout', {
@@ -186,4 +204,3 @@ class ApiClient {
 }
 
 export const api = new ApiClient();
-

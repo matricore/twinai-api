@@ -37,13 +37,34 @@ export function AuthProvider({ children }) {
     return response;
   };
 
+  const loginWithGoogle = async (idToken) => {
+    const response = await api.googleAuth(idToken);
+    setUser(response.data.user);
+    return response;
+  };
+
+  const loginWithApple = async (identityToken, userInfo) => {
+    const response = await api.appleAuth(identityToken, userInfo);
+    setUser(response.data.user);
+    return response;
+  };
+
   const logout = async () => {
     await api.logout();
     setUser(null);
   };
 
   return (
-    <AuthContext.Provider value={{ user, loading, login, register, logout, checkAuth }}>
+    <AuthContext.Provider value={{ 
+      user, 
+      loading, 
+      login, 
+      register, 
+      loginWithGoogle, 
+      loginWithApple, 
+      logout, 
+      checkAuth 
+    }}>
       {children}
     </AuthContext.Provider>
   );
@@ -56,4 +77,3 @@ export const useAuth = () => {
   }
   return context;
 };
-
