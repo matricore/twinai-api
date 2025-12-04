@@ -143,6 +143,15 @@ class ApiClient {
     return this.request('/users/me');
   }
 
+  // Twin
+  async getTwinDashboard() {
+    return this.request('/twin/dashboard');
+  }
+
+  async getTwinProfile() {
+    return this.request('/twin/profile');
+  }
+
   // Chat
   async sendMessage(message, conversationId = null) {
     return this.request('/chat', {
